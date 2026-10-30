@@ -387,6 +387,14 @@ class cata_tiles
         /** Reload tileset, with the given scale. Scale is divided by 16 to allow for scales < 1 without risking
          *  float inaccuracies. */
         void set_draw_scale( int scale );
+        /** The scale last given to set_draw_scale (16 is 1x), or 0 if it was never set. */
+        int get_draw_scale() const {
+            return draw_scale;
+        }
+
+        /** Draws a character as a standalone sprite at a pixel position of the window, with
+         *  no relation to the map or to the player position. Used by the character preview. */
+        void display_character( const Character &ch, const point &p );
 
         void on_options_changed();
 
@@ -699,6 +707,11 @@ class cata_tiles
         int screentile_height = 0;
         float tile_ratiox = 0.0f;
         float tile_ratioy = 0.0f;
+        int draw_scale = 0;
+
+        // While true, tiles are drawn at the pixel position they are given instead of at a
+        // map position relative to the player. Only set by display_character().
+        bool drawing_independent_entity = false;
 
         bool in_animation = false;
 
