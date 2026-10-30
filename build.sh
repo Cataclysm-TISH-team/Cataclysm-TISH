@@ -1,0 +1,2 @@
+#!/bin/bash
+make -j4 TILES=1 SOUND=1 RELEASE=1 MSYS2=1 DYNAMIC_LINKING=1 RUNTESTS=0 WARNINGS="-w" 2>&1 | tee build.log

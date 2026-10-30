@@ -595,6 +595,7 @@ void tileset_cache::loader::load_tileset( const cata_path &img_path, const bool 
 void cata_tiles::set_draw_scale( int scale )
 {
     cata_assert( tileset_ptr );
+    draw_scale = scale;
     tile_width = tileset_ptr->get_tile_width() * tileset_ptr->get_tile_pixelscale() * scale / 16;
     tile_height = tileset_ptr->get_tile_height() * tileset_ptr->get_tile_pixelscale() * scale / 16;
 
@@ -2080,7 +2081,7 @@ bool cata_tiles::draw_from_id_string_internal( const std::string &id, TILE_CATEG
     // [0->width|height / tile_width|height]
 
     half_open_rectangle<point> screen_bounds( o, o + point( screentile_width, screentile_height ) );
-    if( !is_isometric() && !screen_bounds.contains( pos.xy() ) ) {
+    if( !drawing_independent_entity && !is_isometric() && !screen_bounds.contains( pos.xy() ) ) {
         return false;
     }
 
@@ -2089,7 +2090,12 @@ bool cata_tiles::draw_from_id_string_internal( const std::string &id, TILE_CATEG
 
 
     // translate from player-relative to screen relative tile position
-    const point screen_pos = player_to_screen( pos.xy() );
+    // (an independent entity is already given as a position in screen pixels)
+    const point screen_pos = drawing_independent_entity ? pos.xy() : player_to_screen( pos.xy() );
+    if( drawing_independent_entity ) {
+        // there is no map around it that could occlude it
+        retract = 0;
+    }
 
     if( retract < 0 && ( prevent_occlusion_transp || prevent_occlusion_retract ) ) {
         if( prevent_occlusion == 0 ) {
@@ -3839,6 +3845,24 @@ void cata_tiles::draw_entity_with_overlays( const Character &ch, const tripoint 
             height_3d = std::max( height_3d, overlay_height_3d );
         }
     }
+}
+
+void cata_tiles::display_character( const Character &ch, const point &p )
+{
+    // Makes the draw functions take p as a pixel position of the window, and puts the flag
+    // back whatever happens while drawing.
+    struct independent_entity_guard {
+        bool &flag;
+        explicit independent_entity_guard( bool &f ) : flag( f ) {
+            flag = true;
+        }
+        ~independent_entity_guard() {
+            flag = false;
+        }
+    } guard( drawing_independent_entity );
+
+    int height_3d = 0;
+    draw_entity_with_overlays( ch, tripoint( p, 0 ), lit_level::LIT, height_3d );
 }
 
 bool cata_tiles::draw_item_highlight( const tripoint &pos )

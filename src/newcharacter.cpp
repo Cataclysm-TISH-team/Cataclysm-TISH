@@ -25,6 +25,7 @@
 #include "catacharset.h"
 #include "character.h"
 #include "character_martial_arts.h"
+#include "character_preview.h"
 #include "color.h"
 #include "cursesdef.h"
 #include "enum_conversions.h"
@@ -1536,12 +1537,18 @@ void set_traits( tab_manager &tabs, avatar &u, pool_type pool )
     ui_adaptor ui;
     catacurses::window w;
     catacurses::window w_description;
+    // Declared after ui so that it is destroyed (and puts the zoom back) before it
+    character_preview_window character_preview;
     const auto init_windows = [&]( ui_adaptor & ui ) {
         w = catacurses::newwin( TERMY, TERMX, point_zero );
         w_description = catacurses::newwin( 3, TERMX - 2, point( 1, TERMY - 4 ) );
         ui.position_from_window( w );
         page_width = std::min( ( TERMX - 4 ) / used_pages, 38 );
         iContentHeight = TERMY - 9;
+
+        // The preview takes the space to the right of the three pages of traits
+        const int preview_x = static_cast<int>( page_width ) * 3;
+        character_preview.init( &u, TERMY - 9, TERMX - preview_x - 3, point( preview_x, 5 ) );
 
         pos_calc();
     };
@@ -1560,6 +1567,10 @@ void set_traits( tab_manager &tabs, avatar &u, pool_type pool )
     ctxt.register_action( "FILTER" );
     ctxt.register_action( "RESET_FILTER" );
     ctxt.register_action( "SORT" );
+#if defined(TILES)
+    ctxt.register_action( "zoom_in" );
+    ctxt.register_action( "zoom_out" );
+#endif
 
     ui.on_redraw( [&]( const ui_adaptor & ) {
         werase( w );
@@ -1687,6 +1698,8 @@ void set_traits( tab_manager &tabs, avatar &u, pool_type pool )
 
         wnoutrefresh( w );
         wnoutrefresh( w_description );
+        // Has to be drawn after the main window
+        character_preview.display();
     } );
 
     do {
@@ -1746,6 +1759,13 @@ void set_traits( tab_manager &tabs, avatar &u, pool_type pool )
 
         ui_manager::redraw();
         const std::string action = ctxt.handle_input();
+#if defined(TILES)
+        if( action == "zoom_in" ) {
+            character_preview.zoom_in();
+        } else if( action == "zoom_out" ) {
+            character_preview.zoom_out();
+        }
+#endif
         std::array< int, 3> cur_sb_pos = iStartPos;
         bool scrollbar_handled = false;
         for( int i = 0; i < static_cast<int>( trait_sbs.size() ); ++i ) {

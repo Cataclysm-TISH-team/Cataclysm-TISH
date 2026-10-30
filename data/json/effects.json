@@ -526,9 +526,9 @@
     "apply_message": "You're on fire!  Wait in place to attempt to put out the fire.",
     "apply_memorial_log": "Caught on fire.",
     "rating": "bad",
-    "max_intensity": 3,
+    "max_intensity": 2,
     "int_dur_factor": "5 s",
-    "max_duration": "50 s",
+    "max_duration": "10 s",
     "show_in_info": true
   },
   {

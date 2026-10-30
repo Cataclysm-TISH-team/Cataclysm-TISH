@@ -1,0 +1,13 @@
+#MSX++UnDeadPeopleEdition_v2 TILESET
+
+#Name of the tileset
+NAME: UndeadPeople v2
+#Viewing (Option) name of the tileset
+VIEW: UndeadPeople v2
+#JSON Path - Default of tile_config.json
+JSON: tile_config.json
+#Tileset Path - Default of tinytile.png
+TILESET: tiles.png
+
+#Development ongoing constantly!
+#Find source github at https://github.com/Goodgulf-PL/UndeadPeopleTileset_Unpacked_New_Version
